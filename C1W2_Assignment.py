@@ -121,36 +121,39 @@ def train_mnist(x_train, y_train):
 
     ### START CODE HERE
     
-    # Instantiate the callback class
-    callbacks = myCallback()
+# Define the callback class
+    class myCallback(tf.keras.callbacks.Callback):
+        def on_epoch_end(self, epoch, logs={}):
+            if logs.get('accuracy') > 0.99:
+                print("\nReached 99% accuracy so cancelling training!")
+                self.model.stop_training = True
     
-    mnist = tf.keras.datasets.mnist
-
-    (x_train, y_train)= mnist.load_data()
-    # YOUR CODE SHOULD START HERE
-    x_train= x_train/255.0
-    # YOUR CODE SHOULD END HERE
+    # Load the data
+    (x_train, y_train), _ = mnist.load_data()
+    
+    # Preprocess the data
+    x_train = x_train / 255.0
+    
+    # Define the model
     model = tf.keras.models.Sequential([
-        # YOUR CODE SHOULD START HERE
-        tf.keras.layers.Flatten(),
+        tf.keras.layers.Flatten(input_shape=(28, 28)),
         tf.keras.layers.Dense(512, activation=tf.nn.relu),
-        tf.keras.layers.Dense(256, activation=tf.nn.relu),
-        tf.keras.layers.Dense(128, activation=tf.nn.relu),
         tf.keras.layers.Dense(10, activation=tf.nn.softmax)
-        # YOUR CODE SHOULD END HERE
     ])
 
+    # Compile the model
     model.compile(optimizer='adam',
                   loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
     
-    # model fitting
-    history = model.fit(# YOUR CODE SHOULD START HERE
-        x_train, y_train,epochs=10, callbacks=[myCallback]
-              # YOUR CODE SHOULD END HERE
-    )
-    # model fitting
-    return history.epoch, history.hist['acc'][-1]
+    # Define the callback instance
+    callbacks = myCallback()
+    
+    # Train the model
+    history = model.fit(x_train, y_train, epochs=8, callbacks=[callbacks])
+    
+    # Return the results
+    return history.epoch, history.history['accuracy'][-1]
 
 
 # Call the `train_mnist` passing in the appropiate parameters to get the training history:
@@ -162,6 +165,22 @@ def train_mnist(x_train, y_train):
 
 hist = train_mnist(x_train, y_train)
 
+Epoch 1/8
+1875/1875 [==============================] - 8s 4ms/step - loss: 0.4740 - accuracy: 0.8307
+Epoch 2/8
+1875/1875 [==============================] - 8s 4ms/step - loss: 0.3597 - accuracy: 0.8665
+Epoch 3/8
+1875/1875 [==============================] - 8s 4ms/step - loss: 0.3231 - accuracy: 0.8811
+Epoch 4/8
+1875/1875 [==============================] - 8s 4ms/step - loss: 0.2983 - accuracy: 0.8894
+Epoch 5/8
+1875/1875 [==============================] - 8s 4ms/step - loss: 0.2810 - accuracy: 0.8950
+Epoch 6/8
+1875/1875 [==============================] - 8s 4ms/step - loss: 0.2656 - accuracy: 0.9008
+Epoch 7/8
+1875/1875 [==============================] - 8s 4ms/step - loss: 0.2521 - accuracy: 0.9064
+Epoch 8/8
+1875/1875 [==============================] - 8s 4ms/step - loss: 0.2424 - accuracy: 0.9092
 
 # If you see the message `Reached 99% accuracy so cancelling training!` printed out after less than 9 epochs it means your callback worked as expected. 
 
