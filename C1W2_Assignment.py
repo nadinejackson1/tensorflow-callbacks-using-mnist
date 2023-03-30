@@ -85,19 +85,15 @@ print(f"There are {data_shape[0]} examples with shape ({data_shape[1]}, {data_sh
 ### START CODE HERE
 
 # Remember to inherit from the correct class
-class myCallback():
-        # Define the correct function signature for on_epoch_end
-        def on_epoch_end(self, epoch, logs={}):
-            if logs.get('accuracy') is not None and logs.get('accuracy') > 0.99:                 
-                print("\nReached 99% accuracy so cancelling training!")
+class myCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs={}):
+        if(logs.get("acc") >= 0.99):
+            print("Reached 99% accuracy so cancelling training!")
+
                 
                 # Stop training once the above condition is met
-                self.model.stop_training = True
-
-mnist = tf.keras.datasets.fashion_mnist
-
-(x_train, y_train),(x_test, y_test) = mnist.load_data()
-x_train, x_test = x_train / 255.0, x_test / 255.0
+        
+            self.model.stop_training = True
 
 ### END CODE HERE
 
@@ -117,43 +113,35 @@ x_train, x_test = x_train / 255.0, x_test / 255.0
 # grader-required-cell
 
 # GRADED FUNCTION: train_mnist
+
 def train_mnist(x_train, y_train):
 
     ### START CODE HERE
-    
-# Define the callback class
     class myCallback(tf.keras.callbacks.Callback):
         def on_epoch_end(self, epoch, logs={}):
-            if logs.get('accuracy') > 0.99:
+            if(logs.get('acc')>0.99):
                 print("\nReached 99% accuracy so cancelling training!")
+        
                 self.model.stop_training = True
-    
-    # Load the data
-    (x_train, y_train), _ = mnist.load_data()
-    
-    # Preprocess the data
-    x_train = x_train / 255.0
-    
-    # Define the model
-    model = tf.keras.models.Sequential([
-        tf.keras.layers.Flatten(input_shape=(28, 28)),
-        tf.keras.layers.Dense(512, activation=tf.nn.relu),
-        tf.keras.layers.Dense(10, activation=tf.nn.softmax)
-    ])
 
-    # Compile the model
-    model.compile(optimizer='adam',
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
-    
-    # Define the callback instance
-    callbacks = myCallback()
-    
-    # Train the model
-    history = model.fit(x_train, y_train, epochs=8, callbacks=[callbacks])
-    
-    # Return the results
-    return history.epoch, history.history['accuracy'][-1]
+mnist = tf.keras.datasets.mnist
+
+(x_train, y_train),(x_test, y_test) = mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
+
+callbacks = myCallback()
+
+model = tf.keras.models.Sequential([
+  tf.keras.layers.Flatten(input_shape=(28, 28)),
+  tf.keras.layers.Dense(512, activation=tf.nn.relu),
+  tf.keras.layers.Dense(10, activation=tf.nn.softmax)
+])
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['acc'])
+
+history = model.fit(x_train, y_train, epochs=10, callbacks=[callbacks])
+
 
 
 # Call the `train_mnist` passing in the appropiate parameters to get the training history:
